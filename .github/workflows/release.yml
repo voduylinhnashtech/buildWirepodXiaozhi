@@ -1,0 +1,137 @@
+name: Release
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  buildwinandmacos:
+    env:
+      GOFLAGS: -modcacherw
+    runs-on: macos-14
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+          cache: true
+      - name: Setup cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/macos/libs
+            ${{ github.workspace }}/windows/libs
+          key: ${{ runner.os }}-libs
+      - name: Build for macOS
+        run: cd macos && sudo ./build.sh ${{ github.ref_name }}
+      - name: Copy macOS installer to default working directory
+        run: cp macos/target/WirePod-${{ github.ref_name }}.dmg .
+      - name: Build for Windows
+        run: cd windows && sudo ./build-installer.sh ${{ github.ref_name }} && sudo ./build.sh ${{ github.ref_name }}
+      - name: Copy Windows installer to default working directory
+        run: cp windows/wire-pod-win-amd64.zip . && cp windows/WirePodInstaller-${{ github.ref_name }}.exe .
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            WirePod-${{ github.ref_name }}.dmg
+            WirePodInstaller-${{ github.ref_name }}.exe
+            wire-pod-win-amd64.zip
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WirePod-${{ github.ref_name }}.dmg
+          path: WirePod-${{ github.ref_name }}.dmg
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: WirePod-${{ github.ref_name }}-windows
+          path: |
+            WirePodInstaller-${{ github.ref_name }}.exe
+            wire-pod-win-amd64.zip
+  buildlinux:
+    env:
+      GOFLAGS: -modcacherw
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+          cache: true
+      - name: Setup cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/android/android-14
+            ${{ github.workspace }}/android/android-ndk
+          key: android-ndk-stuff
+      - name: Build .debs
+        run: cd debian && ./createdeb.sh ${{ github.ref_name }}
+      - name: Copy final .debs to working directory
+        run: |
+          cp debian/final/wirepod*.deb .
+          cp wirepod_amd64-*.deb wirepod_amd64-main.deb
+          cp wirepod_armhf-*.deb wirepod_armhf-main.deb
+          cp wirepod_arm64-*.deb wirepod_arm64-main.deb
+      - name: Upload Debian artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wirepod-${{ github.ref_name }}-debian
+          path: |
+            wirepod_amd64-${{ github.ref_name }}.deb
+            wirepod_armhf-${{ github.ref_name }}.deb
+            wirepod_arm64-${{ github.ref_name }}.deb
+      - name: Setup Android build environment
+        env:
+          ANDROID_KEY: "${{ secrets.ANDROID_KEY }}"
+          ANDROID_PASSWD: "${{ secrets.ANDROID_PASSWD }}"
+        run: |
+          cd android && ./ghactions_init.sh
+      - name: Build Android APK
+        env:
+          GHACTIONS: "true"
+        run: cd android && ./build.sh ${{ github.ref_name }}
+      - name: Copy final .apk to working directory
+        run: |
+          cp android/*.apk .
+          cp *.apk WirePod-main.apk
+      - name: Rename APK so it includes version string
+        if: ${{ github.ref_name != 'main' }}
+        run: cp -f WirePod-main.apk WirePod-${{ github.ref_name }}.apk
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wirepod-${{ github.ref_name }}-android
+          path: |
+            WirePod-${{ github.ref_name }}.apk
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            wirepod_amd64-${{ github.ref_name }}.deb
+            wirepod_armhf-${{ github.ref_name }}.deb
+            wirepod_arm64-${{ github.ref_name }}.deb
+            WirePod-${{ github.ref_name }}.apk
