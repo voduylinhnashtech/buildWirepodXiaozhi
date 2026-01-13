@@ -2,9 +2,11 @@
 
 set -e
 
-# Use wirepodxiaozhi-main repo
+# Use wirepodxiaozhi-main or wirepodxiaozhi repo
 if [ -d "../../wirepodxiaozhi-main" ]; then
     WP_COMMIT_HASH=$(cd ../../wirepodxiaozhi-main && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+elif [ -d "../../wirepodxiaozhi" ]; then
+    WP_COMMIT_HASH=$(cd ../../wirepodxiaozhi && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 else
     WP_COMMIT_HASH="github"
 fi
@@ -60,7 +62,7 @@ fi
 echo "Zipping static files and bundling..."
 cd resources
 rm -rf webroot intent-data epod pod-bot-install.sh weather-map.json
-# Use wirepodxiaozhi-main repo
+# Use wirepodxiaozhi-main or wirepodxiaozhi repo
 if [ -d "../../wirepodxiaozhi-main" ]; then
     cp -r ../../wirepodxiaozhi-main/chipper/webroot .
     cp -r ../../wirepodxiaozhi-main/chipper/intent-data .
@@ -68,8 +70,15 @@ if [ -d "../../wirepodxiaozhi-main" ]; then
     cp -r ../../wirepodxiaozhi-main/vector-cloud/pod-bot-install.sh .
     cp -r ../../wirepodxiaozhi-main/chipper/weather-map.json .
     cp -r ../../wirepodxiaozhi-main/chipper/stttest.pcm .
+elif [ -d "../../wirepodxiaozhi" ]; then
+    cp -r ../../wirepodxiaozhi/chipper/webroot .
+    cp -r ../../wirepodxiaozhi/chipper/intent-data .
+    cp -r ../../wirepodxiaozhi/chipper/epod .
+    cp -r ../../wirepodxiaozhi/vector-cloud/pod-bot-install.sh .
+    cp -r ../../wirepodxiaozhi/chipper/weather-map.json .
+    cp -r ../../wirepodxiaozhi/chipper/stttest.pcm .
 else
-    echo "Error: wirepodxiaozhi-main directory not found!"
+    echo "Error: wirepodxiaozhi-main or wirepodxiaozhi directory not found!"
     exit 1
 fi
 echo $ORIGVERSION > version

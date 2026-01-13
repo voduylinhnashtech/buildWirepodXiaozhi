@@ -2,9 +2,11 @@
 
 set -e
 
-# Use wirepodxiaozhi-main repo
+# Use wirepodxiaozhi-main or wirepodxiaozhi repo
 if [ -d "../../wirepodxiaozhi-main" ]; then
     WP_COMMIT_HASH=$(cd ../../wirepodxiaozhi-main && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+elif [ -d "../../wirepodxiaozhi" ]; then
+    WP_COMMIT_HASH=$(cd ../../wirepodxiaozhi && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 else
     WP_COMMIT_HASH="github"
 fi
@@ -129,12 +131,15 @@ function buildApp() {
     echo "</dict>" >> $PLISTFILE
     echo "</plist>" >> $PLISTFILE
 
-    # Use wirepodxiaozhi-main repo
+    # Use wirepodxiaozhi-main or wirepodxiaozhi repo
     if [ -d "../../wirepodxiaozhi-main" ]; then
         export CHPATH="../../wirepodxiaozhi-main/chipper"
         export CLPATH="../../wirepodxiaozhi-main/vector-cloud"
+    elif [ -d "../../wirepodxiaozhi" ]; then
+        export CHPATH="../../wirepodxiaozhi/chipper"
+        export CLPATH="../../wirepodxiaozhi/vector-cloud"
     else
-        echo "Error: wirepodxiaozhi-main directory not found!"
+        echo "Error: wirepodxiaozhi-main or wirepodxiaozhi directory not found!"
         exit 1
     fi
 

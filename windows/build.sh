@@ -2,14 +2,22 @@
 
 export BUILDFILES="./cmd"
 
-# Use wirepodxiaozhi-main repo (hoàn toàn thay thế)
+# Use wirepodxiaozhi-main or wirepodxiaozhi repo
 if [ -d "../../wirepodxiaozhi-main" ]; then
     WP_COMMIT_HASH=$(cd ../../wirepodxiaozhi-main && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
     export CHPATH="../../wirepodxiaozhi-main/chipper"
     export CLPATH="../../wirepodxiaozhi-main/vector-cloud"
+    echo "Using wirepodxiaozhi-main directory"
+elif [ -d "../../wirepodxiaozhi" ]; then
+    WP_COMMIT_HASH=$(cd ../../wirepodxiaozhi && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+    export CHPATH="../../wirepodxiaozhi/chipper"
+    export CLPATH="../../wirepodxiaozhi/vector-cloud"
+    echo "Using wirepodxiaozhi directory"
 else
-    echo "Error: wirepodxiaozhi-main directory not found!"
-    echo "Please clone your repo: git clone https://github.com/haryken/wirepodxiaozhi wirepodxiaozhi-main"
+    echo "Error: wirepodxiaozhi-main or wirepodxiaozhi directory not found!"
+    echo "Please ensure one of these directories exists:"
+    echo "  - ../../wirepodxiaozhi-main"
+    echo "  - ../../wirepodxiaozhi"
     exit 1
 fi
 GOLDFLAGS="-X 'github.com/haryken/wirepodxiaozhi/chipper/pkg/vars.CommitSHA=${WP_COMMIT_HASH}'"
@@ -35,6 +43,40 @@ set -e
 export ORIGDIR="$(pwd)"
 export PODLIBS="${ORIGDIR}/libs"
 
+# Kiểm tra dependencies cơ bản
+check_dep() {
+    if ! command -v $1 &> /dev/null; then
+        echo "❌ LỖI: Không tìm thấy $1"
+        echo ""
+        echo "Vui lòng cài đặt dependencies trước:"
+        echo "  sudo apt install -y mingw-w64 mingw-w64-tools autotools-dev automake autoconf libtool"
+        echo ""
+        echo "Hoặc chạy: ./install-deps.sh"
+        exit 1
+    fi
+}
+
+echo "Đang kiểm tra dependencies..."
+check_dep x86_64-w64-mingw32-gcc
+check_dep x86_64-w64-mingw32-g++
+check_dep x86_64-w64-mingw32-windres
+check_dep autoreconf
+check_dep autoconf
+check_dep automake
+# libtool package trên Ubuntu không có binary libtool trong PATH, chỉ có libtoolize
+# Kiểm tra libtoolize thay thế
+if ! command -v libtoolize &> /dev/null && ! dpkg -l | grep -q "^ii.*libtool "; then
+    echo "❌ LỖI: Không tìm thấy libtool package"
+    echo ""
+    echo "Vui lòng cài đặt dependencies trước:"
+    echo "  sudo apt install -y mingw-w64 mingw-w64-tools autotools-dev automake autoconf libtool"
+    echo ""
+    echo "Hoặc chạy: ./install-deps.sh"
+    exit 1
+fi
+echo "✅ Tất cả dependencies đã sẵn sàng"
+echo ""
+
 mkdir -p "${PODLIBS}"
 
 if [[ ! -d "${PODLIBS}/ogg" ]]; then
@@ -55,8 +97,10 @@ if [[ ! -d "${PODLIBS}/opus" ]]; then
     git clone https://github.com/xiph/opus --depth=1
     cd opus
     ./autogen.sh
-    ./configure --host=${PODHOST} --prefix="${PODLIBS}/opus"
-    make -j
+    ./configure --host=${PODHOST} --prefix="${PODLIBS}/opus" --disable-extra-programs CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
+    # Build library - disable extra programs để tránh lỗi linking với __chk_fail ở test programs
+    # Nếu vẫn lỗi, build chỉ library target
+    make -j || (echo "Build all failed, trying library only..." && make -j libopus.la)
     make install
     cd "${ORIGDIR}"
 fi
@@ -113,6 +157,9 @@ cp -r ../icons tmp/wire-pod/chipper/icons
 
 cp uninstall.exe tmp/wire-pod/
 cp chipper.exe tmp/wire-pod/chipper/
+
+# Copy start script để đảm bảo chạy từ đúng thư mục
+cp start-chipper.bat tmp/wire-pod/chipper/ 2>/dev/null || echo "start-chipper.bat not found, skipping"
 
 cp ${PODLIBS}/opus/bin/libopus-0.dll tmp/wire-pod/chipper/
 cp ${PODLIBS}/ogg/bin/libogg-0.dll tmp/wire-pod/chipper/

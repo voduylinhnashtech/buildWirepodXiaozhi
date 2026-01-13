@@ -26,6 +26,23 @@ func (w *Windows) ReadConfig() (all.WPConfig, error) {
 	var wp all.WPConfig
 	port, err := GetRegistryValueString(SoftwareKey, "WebPort")
 	if err != nil {
+		// Nếu không có Registry config, tự động detect từ executable path
+		execPath, err2 := os.Executable()
+		if err2 == nil {
+			execDir := filepath.Dir(execPath)
+			// Nếu chipper.exe nằm trong thư mục chipper, lấy parent directory
+			if filepath.Base(execDir) == "chipper" {
+				wp.InstallPath = filepath.Dir(execDir)
+			} else {
+				wp.InstallPath = execDir
+			}
+			wp.WSPort = "8080"
+			wp.Version = "unknown"
+			wp.RunAtStartup = false
+			wp.NeedsRestart = false
+			wp.LastRunningPID = 0
+			return wp, nil
+		}
 		return wp, err
 	}
 	ver, _ := GetRegistryValueString(SoftwareKey, "PodVersion")

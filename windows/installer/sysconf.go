@@ -40,7 +40,7 @@ func UpdateUninstallRegistry(is InstallSettings) {
 	appName := "wire-pod"
 	displayIcon := filepath.Join(is.Where, `\chipper\icons\ico\pod256x256.ico`)
 	displayVersion := GitHubTag
-	publisher := "github.com/kercre123"
+	publisher := "github.com/haryken"
 	uninstallString := filepath.Join(is.Where, `\uninstall.exe`)
 	installLocation := filepath.Join(is.Where, `\chipper\chipper.exe`)
 	err := cross_win.UpdateRegistryValueString(cross_win.UninstallKey, "DisplayName", appName)
