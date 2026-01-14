@@ -6,8 +6,8 @@ import (
 
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
-	"github.com/haryken/wirepodxiaozhi/chipper/pkg/logger"
-	"github.com/haryken/wirepodxiaozhi/chipper/pkg/vars"
+	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
 
 var PingingStarted bool

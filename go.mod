@@ -11,7 +11,7 @@ require (
 	github.com/fforchino/vector-go-sdk v0.0.0-20231108155304-62168f3595d6
 	github.com/getlantern/systray v1.2.2
 	github.com/go-ole/go-ole v1.3.0
-	github.com/haryken/wirepodxiaozhi/chipper v0.0.0
+	github.com/kercre123/wire-pod/chipper v0.0.0 // Required for imports, will be replaced by local
 	github.com/ncruces/zenity v0.10.10
 	github.com/soheilhy/cmux v0.1.5
 	github.com/wlynxg/anet v0.0.1
@@ -143,5 +143,17 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-// Replace wirepodxiaozhi/chipper module path to local wirepodxiaozhi
-replace github.com/haryken/wirepodxiaozhi/chipper => ../wirepodxiaozhi/chipper
+// Option 1: Use LOCAL wirepodxiaozhi (for development/testing)
+// Uncomment these lines to use local code:
+// replace github.com/haryken/wirepodxiaozhi/chipper => ../wirepodxiaozhi/chipper
+// replace github.com/kercre123/wire-pod/chipper => ../wirepodxiaozhi/chipper
+
+// Option 2: Use from GitHub (requires repo to have tags/releases)
+// Uncomment and modify version if you want to use from GitHub:
+// replace github.com/haryken/wirepodxiaozhi/chipper => github.com/haryken/wirepodxiaozhi/chipper v0.0.0
+// replace github.com/kercre123/wire-pod/chipper => github.com/haryken/wirepodxiaozhi/chipper v0.0.0
+
+// Currently using LOCAL for development
+// Only replace github.com/kercre123/wire-pod/chipper to local directory
+// Note: Files importing from github.com/haryken/wirepodxiaozhi/chipper need to be updated to use github.com/kercre123/wire-pod/chipper
+replace github.com/kercre123/wire-pod/chipper => ../wirepodxiaozhi/chipper
