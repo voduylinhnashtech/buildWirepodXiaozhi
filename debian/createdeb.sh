@@ -4,8 +4,8 @@
 
 #set -e
 
-COMPILE_ARCHES=(amd64 armhf arm64)
-#COMPILE_ARCHES=(arm64)
+#COMPILE_ARCHES=(amd64 armhf arm64)
+COMPILE_ARCHES=(arm64)
 
 # Use wirepodxiaozhi-main repo
 if [ -d "../../wirepodxiaozhi-main" ]; then
@@ -13,9 +13,24 @@ if [ -d "../../wirepodxiaozhi-main" ]; then
 else
     WP_COMMIT_HASH="github"
 fi
-GOLDFLAGS="-X 'github.com/haryken/wirepodxiaozhi/chipper/pkg/vars.CommitSHA=${WP_COMMIT_HASH}'"
+GOLDFLAGS="-X 'github.com/kercre123/wire-pod/chipper/pkg/vars.CommitSHA=${WP_COMMIT_HASH}'"
 
 ORIGPATH="$(pwd)"
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+. "${_SCRIPT_DIR}/debfiles/go-sudo-path.sh"
+
+# Clean cache and old builds before starting
+echo "🧹 Cleaning Go cache and old builds..."
+go clean -cache -modcache 2>/dev/null || true
+rm -rf debcreate 2>/dev/null || true
+echo "✅ Clean complete"
+
+# Create symlink if not exists (for go.mod replace to work)
+if [ ! -L "../wirepodxiaozhi" ]; then
+    ln -sf ../../wirepodxiaozhi ../wirepodxiaozhi 2>/dev/null || true
+    echo "✅ Symlink created"
+fi
 
 AMD64T="$(pwd)/wire-pod-toolchain/x86_64-unknown-linux-gnu/bin/x86_64-unknown-linux-gnu-"
 ARMT="$(pwd)/wire-pod-toolchain/arm-unknown-linux-gnueabihf/bin/arm-unknown-linux-gnueabihf-"
@@ -44,7 +59,7 @@ fi
 
 # gather compilers
 if [[ ! -d wire-pod-toolchain ]]; then
-    git clone https://github.com/haryken/wirepodxiaozhi-toolchain --depth=1
+    git clone https://github.com/kercre123/wire-pod-toolchain --depth=1
 fi
 
 # compile vosk...
@@ -327,14 +342,20 @@ function buildWirePod() {
     cp -rf $VCC/pod-bot-install.sh $DC/etc/wire-pod/
     cp -rf $WPC/stttest.pcm $DC/etc/wire-pod/
     echo $PODVERSION > $DC/etc/wire-pod/version
-    cp -rf built/$ARCH/lib/libvosk.so $DC/usr/lib/
-    cp -rf built/$ARCH/include/vosk_api.h $DC/usr/include/
+    # SKIP VOSK - not needed
+    #cp -rf built/$ARCH/lib/libvosk.so $DC/usr/lib/
+    #cp -rf built/$ARCH/include/vosk_api.h $DC/usr/include/
     cp -rf debfiles/wire-pod.service $DC/lib/systemd/system/
     cp -rf debfiles/config.ini $DC/etc/wire-pod/
-    
+
+    if [ ! -r "$DC/etc/wire-pod/webroot/index.html" ]; then
+        echo "ERROR: webroot not staged (missing $DC/etc/wire-pod/webroot/index.html). WPC=$WPC" >&2
+        exit 1
+    fi
+
     # BUILD WIREPOD
     expToolchain $ARCH
-    
+
     export CGO_ENABLED=1
     export CGO_LDFLAGS="-L$(pwd)/built/$ARCH/lib -latomic"
     export CGO_CFLAGS="-I$(pwd)/built/$ARCH/include"
@@ -349,11 +370,18 @@ function buildWirePod() {
     #    export AS=""
     #    export CPP=""
     #    fi
-    go build \
-    -tags nolibopusfile,inbuiltble \
+    if ! go build \
+    -tags nolibopusfile,inbuiltble,novosk \
     -ldflags "-w -s ${GOLDFLAGS}" \
     -o $DC/usr/bin/wire-pod \
-    ./pod/*.go
+    ./pod/*.go; then
+        echo "ERROR: go build failed for $ARCH — not producing a .deb (fix Go/toolchain or PATH, e.g. sudo env \"PATH=\$PATH\" ./createdeb.sh ...)." >&2
+        exit 1
+    fi
+    if [[ ! -s "$DC/usr/bin/wire-pod" ]]; then
+        echo "ERROR: $DC/usr/bin/wire-pod missing or empty after go build." >&2
+        exit 1
+    fi
 }
 
 function finishDeb() {
@@ -361,6 +389,10 @@ function finishDeb() {
     mkdir -p $ORIGPATH/final
     cd $ORIGPATH/debcreate
     dpkg-deb -Zxz --build $ARCH
+    if ! dpkg-deb -c "${ARCH}.deb" 2>/dev/null | grep -q 'usr/bin/wire-pod'; then
+        echo "ERROR: ${ARCH}.deb does not contain usr/bin/wire-pod — refusing to publish a broken package." >&2
+        exit 1
+    fi
     mv $ARCH.deb ../final/wirepod_$ARCH-$PODVERSION.deb
     cd $ORIGPATH
     echo "final/wirepod_$ARCH-$PODVERSION.deb created successfully"
@@ -385,12 +417,13 @@ for arch in "${COMPILE_ARCHES[@]}"; do
     #    echo "Creating DEBIAN folder for $arch"
     createDEBIAN "$arch"
     doLibSodium "$arch"
-    if [[ ! -f ${ORIGPATH}/built/$arch/lib/libvosk.so ]]; then
-        echo "Compiling VOSK dependencies for $arch"
-        prepareVOSKbuild "$arch"
-    fi
+    # SKIP VOSK - not needed
+    #if [[ ! -f ${ORIGPATH}/built/$arch/lib/libvosk.so ]]; then
+    #    echo "Compiling VOSK dependencies for $arch"
+    #    prepareVOSKbuild "$arch"
+    #fi
     #    echo "Building VOSK for $arch (if needed)"
-    doVOSKbuild "$arch"
+    #doVOSKbuild "$arch"
     #    echo "Building OPUS for $arch (if needed)"
     buildOPUS "$arch"
     echo "Dependencies complete for $arch."

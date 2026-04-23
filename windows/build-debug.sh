@@ -20,7 +20,7 @@ else
     echo "Error: wirepodxiaozhi-main or wirepodxiaozhi directory not found!"
     exit 1
 fi
-GOLDFLAGS="-X 'github.com/haryken/wirepodxiaozhi/chipper/pkg/vars.CommitSHA=${WP_COMMIT_HASH}'"
+GOLDFLAGS="-X 'github.com/kercre123/wire-pod/chipper/pkg/vars.CommitSHA=${WP_COMMIT_HASH}'"
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
     export CC=x86_64-w64-mingw32-gcc
@@ -34,8 +34,33 @@ export ARCHITECTURE=amd64
 
 set -e
 
+# IMPORTANT: Do not run this script with sudo (it may use root's old Go).
+if [ "${EUID}" -eq 0 ]; then
+    echo "❌ LỖI: Đừng chạy build-debug bằng sudo. Hãy chạy: ./build-debug.sh"
+    if command -v go >/dev/null 2>&1; then
+        echo "Go hiện tại (root): $(go env GOVERSION 2>/dev/null || true)"
+    fi
+    exit 1
+fi
+
+if ! command -v go >/dev/null 2>&1; then
+    echo "❌ LỖI: Không tìm thấy go trong PATH"
+    exit 1
+fi
+echo "Using Go: $(go env GOVERSION 2>/dev/null || true)"
+
+# Tránh permission denied trên module cache GVM nếu từng có file thuộc root (xem build.sh).
+export GOMODCACHE="${GOMODCACHE:-$HOME/go/pkg/mod}"
+export GOCACHE="${GOCACHE:-$HOME/.cache/go-build}"
+mkdir -p "$GOMODCACHE" "$GOCACHE"
+
 export ORIGDIR="$(pwd)"
 export PODLIBS="${ORIGDIR}/libs"
+
+# Ensure go.mod / go.sum are up to date for this build
+MODROOT="$(cd "${ORIGDIR}/.." && pwd)"
+echo "Ensuring go.mod is up to date..."
+(cd "${MODROOT}" && go mod tidy)
 
 export GOOS=windows
 export GOARCH=amd64

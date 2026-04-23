@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Wire-Pod Setup · Cài đặt máy chủ</title>
+  <!-- Meta Apple tags for a PWA like experience. -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#1e1e1e">
+  <link rel="stylesheet" type="text/css" href="css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://kit.fontawesome.com/7508f396ac.js" crossorigin="anonymous"></script>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT">
+</head>
+
+<body>
+  <div id="outer">
+    <div id="content" class="">
+      <h1>Wire-Pod Setup <small style="font-weight:normal;opacity:.9;">(Cài đặt máy chủ)</small></h1>
+      <hr />
+      <div class="main-nav-parent">
+        <div class="main-nav-child">
+          <a href="index.html"><i class="fa-solid fa-reply"></i><br />Back<br /><small>(Quay lại)</small></a>
+        </div>
+        <div class="main-nav-child">
+          <a href="#" onclick="showWeather(); return false;"><i class="fa solid fa-cloud-sun" id="icon-Weather"
+              name="icon"></i><br />Weather<br /><small>(Thời tiết)</small></a>
+        </div>
+        <div class="main-nav-child">
+          <a href="#" onclick="showKG(); return false;"><i class="fa solid fa-diagram-project" id="icon-KG"
+              name="icon"></i><br />Knowledge Graph<br /><small>(Đồ thị tri thức)</small></a>
+        </div>
+        <div class="main-nav-child">
+          <a href="#" onclick="showLanguage(); return false;"><i class="fa-solid fa-language" id="icon-Language"
+              name="icon"></i><br />Set Language<br /><small>(Ngôn ngữ STT)</small></a>
+        </div>
+        <!--<div class="main-nav-child"><a href="#" onclick="showRestart(); return false;"><i class="fa solid fa-arrow-rotate-right" id="icon-Restart" name="icon"></i><br/>Restart Wire-Pod</a></div> -->
+      </div>
+      <hr />
+
+      <div id="section-weather" style="display: none">
+        <h3>Weather API Setup <small>(Cài đặt API thời tiết)</small></h3>
+        <hr class="small-hr">
+        <div>
+          <p>Set the weather provider you'd like to use. <small><em>(Chọn nhà cung cấp dữ liệu thời tiết.)</em></small></p>
+          <hr class="small-hr">
+          <div id="addWeatherProviderAPI"></div>
+          <form id="weatherAPIAddForm">
+            <label for="weatherProvider">Weather API Provider: <small>(Nhà cung cấp)</small></label>
+            <select name="weatherProvider" id="weatherProvider" form="weatherAPIAddForm" onchange="checkWeather()">
+              <option value="none">None (Không)</option>
+              <option value="openweathermap.org" selected>OpenWeatherMap</option>
+              <option value="weatherapi.com">WeatherAPI</option>
+            </select><br />
+            <span id="apiKeySpan" style="display: block">
+              <label for="apiKey">API Key: <small>(Khóa API — mặc định OpenWeatherMap, có thể đổi)</small></label><br />
+              <input class="tinput" type="text" name="apiKey" id="apiKey" value="403a79621d25f8fdee7c468bbd16b820" autocomplete="off" /><br />
+            </span>
+          </form>
+          <hr class="small-hr">
+          <button onclick="sendWeatherAPIKey()">
+            Apply Weather Settings <small>(Áp dụng)</small>
+          </button>
+          <div id="addWeatherProviderAPIStatus"></div>
+          <hr />
+        </div>
+      </div>
+
+      <div id="section-kg" style="display: none">
+        <h3>Knowledge Graph Setup <small>(Cài đặt đồ thị tri thức)</small></h3>
+        <hr class="small-hr">
+        <div>
+          <p>Configure the Xiaozhi knowledge graph connection. <small><em>(Cấu hình kết nối Xiaozhi cho Vector.)</em></small></p>
+          <hr class="small-hr">
+          <div id="addKGProviderAPI"></div>
+          <form id="kgAPIAddForm">
+            <p><strong>Knowledge Graph API Provider:</strong> Xiaozhi <small>(Nhà cung cấp: Xiaozhi)</small></p>
+            <input type="hidden" id="kgProvider" name="kgProvider" value="xiaozhi" />
+            <span id="xiaozhiInput">
+              <small class="desc">Xiaozhi provides real-time voice conversation with your Vector robot. Audio will be played through the robot's speaker. <em>/ Xiaozhi cho hội thoại giọng nói thời gian thực; âm phát qua loa robot.</em></small><br />
+              <label for="xiaozhiBaseURL">Xiaozhi Base URL <small class="desc">(leave blank for default: wss://api.tenclass.net/xiaozhi/v1/) — để trống dùng mặc định</small>:</label>
+              <input type="text" name="xiaozhiBaseURL" id="xiaozhiBaseURL" placeholder="wss://api.tenclass.net/xiaozhi/v1/" /><br />
+              <label for="xiaozhiDeviceID">Device ID (MAC Address) <small class="desc">(MAC address của thiết bị đã được pair với server xiaozhi, ví dụ: 6c:24:08:9e:ca:ee)</small>:</label>
+              <input type="text" name="xiaozhiDeviceID" id="xiaozhiDeviceID" placeholder="6c:24:08:9e:ca:ee" style="font-family: monospace;" /><br />
+              <label for="xiaozhiClientID">Client ID (UUID) <small class="desc">(Client ID để xác định client, ví dụ: e8c9b0b3-350f-406d-a31c-7b87be097881)</small>:</label>
+              <input type="text" name="xiaozhiClientID" id="xiaozhiClientID" placeholder="e8c9b0b3-350f-406d-a31c-7b87be097881" style="font-family: monospace;" /><br />
+              <small class="desc" style="color: #666;">MAC address này sẽ được gửi trong headers khi sử dụng TTS/STT của xiaozhi. Điền MAC address của thiết bị đã được pair với server xiaozhi.</small><br />
+              <label for="xiaozhiTTSVolume">Xiaozhi TTS Volume: <small>(Âm lượng TTS)</small></label><br />
+              <small class="desc">Normal = 1x, Medium = 2x, High = 4x. / Bình thường = 1x, Trung bình = 2x, Cao = 4x.</small><br />
+              <select name="xiaozhiTTSVolume" id="xiaozhiTTSVolume">
+                <option value="normal" selected>Normal (Bình thường)</option>
+                <option value="medium">Medium 2x (Trung bình)</option>
+                <option value="high">High 4x (Cao)</option>
+              </select>
+            </span>
+
+            <div class="kg-mode-guide" style="margin: 14px 0; padding: 12px 14px; text-align: left; border: 1px solid rgba(0, 255, 128, 0.35); border-radius: 8px; background: rgba(0, 255, 128, 0.06); max-width: 52em;">
+              <p style="margin: 0 0 8px 0;"><strong>①②③④ — Hướng dẫn chọn 4 cái bên dưới / How to use options 1–4</strong></p>
+              <ul style="margin: 0; padding-left: 1.25em; line-height: 1.5;">
+                <li><strong>Bật đủ cả 4 ô</strong> → chế độ <strong>hội thoại liên tục</strong> với AI (chat dài, nhớ ngữ cảnh khi đủ điều kiện).<br/><small><em>All four checked → continuous conversation mode.</em></small></li>
+                <li><strong>Không bật đủ 4 ô</strong> → chế độ <strong>lệnh intent ngắn</strong>: ví dụ « mấy giờ rồi », « chúc mừng năm mới », « what time is it », « thời tiết hôm nay thế nào » — Wire-Pod khớp intent cục bộ trước.<br/><small><em>Not all four → short “intent” commands; local intents matched first.</em></small></li>
+                <li><strong>Chỉ bật mỗi ô số 1</strong> (intent-graph) → vẫn chơi kiểu <strong>lệnh intent ngắn</strong> như trên; <strong>nếu không khớp intent</strong> thì câu đó được <strong>đưa lên LLM để trả lời</strong>. Ô số 2 (animation LLM) <strong>bật hay không tùy bạn</strong>.<br/><small><em>Only option 1 on → same short intents; if no match, forward to LLM. Option 2 is optional.</em></small></li>
+              </ul>
+            </div>
+
+            <div style="text-align: left;">
+              <span id="intentGraphInput" style="display: none;">
+                <input type="checkbox" id="intentyes" name="intentgselect" onclick="checkKG()" />
+                <label class="checkbox-label" for="intentyes">
+                  <strong>1.</strong> Enable intent-graph: send unmatched speech to the LLM so AI can answer (when local intents don’t match).
+                  <small><br />(Mở trí tuệ nhân tạo để trả lời các câu hỏi khi intent cục bộ không khớp — intent-graph chuyển lên LLM.)</small>
+                </label>
+              </span>
+              <span id="llmCommandInput" style="display: none">
+                <input type="checkbox" id="commandYes" name="commandDoselect" />
+                <label class="checkbox-label" for="commandYes">
+                  <strong>2.</strong> Allow the LLM to make the robot perform animations and other actions during the response.
+                  <small><br />(Cho phép LLM điều khiển animation/hành động khi trả lời.)</small>
+                </label>
+              </span>
+              <span id="saveChatInput" style="display: none">
+                <input type="checkbox" id="saveChatYes" name="saveChatselect" />
+                <label class="checkbox-label" for="saveChatYes">
+                  <strong>3.</strong> Continuous AI conversation: use &quot;I have a question&quot; and reuse past messages as context for later replies. LLM actions (option 2 above) must be on.
+                  <small><br />(Chế độ hội thoại liên tục bằng trí tuệ nhân tạo; cần bật LLM actions ở ô 2 phía trên.)</small>
+                </label></br>
+                <span style="display:inline-block; margin-left: 1.5em; margin-top: 4px;"><a href="#" onclick="deleteSavedChats()">Delete Saved Chats <small>(Xóa hội thoại đã lưu — dùng cùng mục 3)</small></a></span>
+              </span>
+              <span id="xiaozhiDisableIntentInput" style="display: none">
+                <input type="checkbox" id="xiaozhiDisableIntent" name="xiaozhiDisableIntent" />
+                <label class="checkbox-label" for="xiaozhiDisableIntent">
+                  <strong>4.</strong> Disable local intent matching for Xiaozhi. When enabled, all voice commands will be sent directly to the LLM server without checking local intents first. This allows the LLM to handle all commands, including complex requests.
+                  <small><br />(Tắt khớp intent cục bộ: mọi lệnh gửi thẳng LLM.)</small>
+                </label>
+              </span>
+            </div>
+
+          </form>
+        </div>
+        <hr class="small-hr">
+        <button onclick="sendKGAPIKey()">Apply Settings <small>(Áp dụng)</small></button>
+        <div id="addKGProviderAPIStatus"></div>
+        <hr class="small-hr">
+        
+        <!-- Xiaozhi Pairing Section -->
+        <h3 style="margin-top: 20px;">🔗 Xiaozhi Device Pairing <small>(Ghép nối thiết bị)</small></h3>
+        <hr class="small-hr">
+        <div>
+          <!-- Pairing Section -->
+          <div id="pairingContainer" style="margin: 20px 0; padding: 20px; background-color: #f5f5f5; border-radius: 8px; border: 2px solid #e0e0e0;">
+            <h4 style="color: #333; margin-bottom: 20px;">📋 Tạo Pairing Code</h4>
+            
+            <!-- Device ID/MAC Address Input -->
+            <div style="margin-bottom: 20px; padding: 15px; background-color: white; border-radius: 5px; border-left: 4px solid #4285f4;">
+              <label for="deviceIdInput" style="display: block; margin-bottom: 10px; font-weight: bold; color: #333; font-size: 14px;">
+                Device-Id / MAC Address: <span style="color: #db4437;">*</span>
+              </label>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="deviceIdInput" placeholder="Nhập Device-Id hoặc MAC address (ví dụ: 6c:24:08:9e:ca:ee)" 
+                       style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: monospace; font-size: 14px;" />
+                <button onclick="loadLocalMACToInput()" 
+                        style="padding: 10px 15px; background-color: #4285f4; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; white-space: nowrap;">
+                  🔄 Lấy MAC tự động
+                </button>
+              </div>
+              <p style="font-size: 12px; color: #666; margin-top: 8px; margin-bottom: 0;">
+                💡 Nhập Device-Id hoặc MAC address của thiết bị bạn muốn pair. Bạn có thể nhập thủ công hoặc click "Lấy MAC tự động" để tự động điền MAC address của máy đang chạy wirepod.
+              </p>
+            </div>
+
+            <!-- Client-Id (UUID) Input -->
+            <div style="margin-bottom: 20px; padding: 15px; background-color: white; border-radius: 5px; border-left: 4px solid #9c27b0;">
+              <label for="clientIdInput" style="display: block; margin-bottom: 10px; font-weight: bold; color: #333; font-size: 14px;">
+                🆔 Client-Id (UUID): <span style="color: #db4437;">*</span>
+              </label>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="clientIdInput" placeholder="Nhập Client-Id (UUID) hoặc để trống để tự động tạo (ví dụ: 6681b470-b56e-4218-aff8-99189f85de0a)" 
+                       style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: monospace; font-size: 14px;" />
+                <button onclick="generateUUIDToInput()" 
+                        style="padding: 10px 15px; background-color: #9c27b0; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; white-space: nowrap;">
+                  🎲 Tạo UUID
+                </button>
+              </div>
+              <p style="font-size: 12px; color: #666; margin-top: 8px; margin-bottom: 0;">
+                💡 Nhập Client-Id (UUID) của thiết bị. Nếu để trống, hệ thống sẽ tự động tạo UUID mới. Bạn có thể nhập thủ công hoặc click "Tạo UUID" để tự động generate.
+              </p>
+            </div>
+
+            <!-- Generate Button -->
+            <div style="margin-bottom: 20px;">
+              <button id="generatePairingCodeBtn" onclick="generatePairingCodeFromInput()" 
+                      style="padding: 12px 24px; background-color: #0f9d58; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold;">
+                🔑 Tạo mã Pairing
+              </button>
+            </div>
+
+            <!-- Status Display -->
+            <div id="xiaozhiPairingStatus" style="margin-bottom: 15px; padding: 10px; border-radius: 5px; display: none;"></div>
+
+            <!-- Device Info Display (after generation) -->
+            <div id="deviceInfoDisplay" style="margin-bottom: 20px; padding: 15px; background-color: white; border-radius: 5px; border-left: 4px solid #4caf50; display: none;">
+              <h5 style="margin: 0 0 15px 0; color: #2e7d32;">✅ Thông tin thiết bị</h5>
+              <div style="margin-left: 10px;">
+                <p style="margin: 8px 0; color: #666; font-size: 14px;">
+                  <strong>Device-Id / MAC Address:</strong> <code id="displayDeviceId" style="background: #e8f5e9; padding: 4px 8px; border-radius: 3px; font-family: monospace; font-weight: bold; color: #2e7d32;">-</code>
+                </p>
+                <p style="margin: 8px 0; color: #666; font-size: 14px;">
+                  <strong>Client-Id (UUID):</strong> <code id="displayClientId" style="background: #e3f2fd; padding: 4px 8px; border-radius: 3px; font-family: monospace; font-weight: bold; color: #1976d2;">-</code>
+                </p>
+              </div>
+            </div>
+
+            <!-- Pairing Code Display -->
+            <div id="pairingCodeDisplay" style="margin-top: 15px; padding: 20px; background-color: #e3f2fd; border-radius: 5px; display: none;">
+              <h4 style="color: #1976d2; margin-bottom: 10px;">🎯 Mã Pairing của bạn:</h4>
+              <div id="pairingCode" style="font-size: 48px; font-weight: bold; color: #1976d2; letter-spacing: 10px; margin: 20px 0; text-align: center; font-family: monospace;">
+              </div>
+              <div id="pairingCodeInfo" style="margin-top: 10px; font-size: 12px; color: #666;"></div>
+            </div>
+          </div>
+        </div>
+        <hr />
+      </div>
+
+      <div id="section-restart" style="display: none">
+        <h3>Restart Wire-Pod <small>(Khởi động lại)</small></h3>
+        <div>
+          <p>
+            Restart Wire-Pod to apply the initial setup settings immediately
+            <small><br /><em>(Khởi động lại để áp dụng cài đặt ngay.)</em></small>
+          </p>
+          <div id="restart"></div>
+          <div>
+            <button onclick="sendRestart()">Restart Wire-Pod <small>(Khởi động lại)</small></button>
+          </div>
+          <div id="restartStatus"></div>
+          <hr />
+        </div>
+      </div>
+
+      <div id="section-language" style="display: none">
+        <h2>STT Language <small>(Ngôn ngữ nhận dạng giọng nói)</small></h2>
+        <hr class="small-hr">
+        <p>Set the speech-to-text provider and language you'd like wire-pod to use. <small><em>(Chọn engine STT và ngôn ngữ.)</em></small></p>
+        <hr class="small-hr">
+        <div id="languageStatus"></div>
+        <div id="sttProviderSelectionDiv">
+          <label for="sttProvider">STT Provider: <small>(Nhà cung cấp STT)</small></label>
+          <select name="sttProvider" id="sttProvider" onchange="checkSTTProvider()">
+            <option value="vosk">Vosk (Local / Cục bộ)</option>
+            <option value="whisper.cpp">Whisper.cpp (Local / Cục bộ)</option>
+            <option value="xiaozhi">Xiaozhi (Cloud / Đám mây)</option>
+            <option value="houndify">Houndify (Cloud / Đám mây)</option>
+          </select>
+          <small class="desc" id="sttProviderDesc">Select your preferred speech-to-text provider. <em>(Chọn engine STT.)</em></small>
+        </div>
+        <hr class="small-hr">
+        <div id="languageSelectionDiv">
+          <div>
+            <label for="languageSelection" id="languageLabel">Language: <small>(Ngôn ngữ)</small></label>
+            <select name="languageSelection" id="languageSelection">
+              <option value="en-US">English (US)</option>
+              <option value="it-IT">Italian (IT)</option>
+              <option value="es-ES">Spanish (ES)</option>
+              <option value="fr-FR">French (FR)</option>
+              <option value="de-DE">German (DE)</option>
+              <option value="pt-BR">Portuguese (BR)</option>
+              <option value="pl-PL">Polish (PL)</option>
+              <option value="tr-TR">Turkish (TR)</option>
+              <option value="ko-KR">Korean (KR)</option>
+              <option value="zh-CN">Chinese (CN)</option>
+              <option value="ru-RU">Russian (RU)</option>
+              <option value="nt-NL">Dutch (NL)</option>
+              <option value="uk-UA">Ukrainian (UA)</option>
+              <option value="vi-VN">VietNamese (VN)</option>
+            </select>
+          </div>
+          <div>
+            <hr class="small-hr">
+            <label for="intentMatchingMode">Intent Matching Mode: <small>(Chế độ khớp intent)</small></label>
+            <select name="intentMatchingMode" id="intentMatchingMode">
+              <option value="single">Single Language — selected only (Một ngôn ngữ đã chọn)</option>
+              <option value="multilingual">Multilingual — all languages (Đa ngôn ngữ)</option>
+            </select>
+            <small class="desc">Single language mode matches intents only in the selected language. Multilingual mode allows Vector to understand commands in all available languages (English, Vietnamese, Chinese, Spanish, etc.). <em>/ Đơn ngôn ngữ: chỉ khớp ngôn đã chọn. Đa ngôn ngữ: hiểu nhiều ngôn (Anh, Việt, Trung, Tây Ban Nha…).</em></small>
+          </div>
+          <div>
+            <hr class="small-hr">
+            <button onclick="setSTTLanguage()">
+              Set STT Provider &amp; Language <small>(Áp dụng STT &amp; ngôn ngữ)</small>
+            </button>
+          </div>
+        </div>
+        <hr />
+      </div>
+
+      <footer class="site-footer" style="margin-top: 2em; padding: 16px 8px; font-size: 0.88em; text-align: center; border-top: 1px solid rgba(255,255,255,0.12); color: #9aa0a6;">
+        <p style="margin: 0 0 6px 0;">© 2025 <strong>Võ Duy Linh</strong></p>
+        <p style="margin: 0;">Liên hệ Zalo: <strong>0375114564</strong></p>
+      </footer>
+    </div>
+  </div>
+</body>
+<script src="./js/ui.js"></script>
+<script src="./js/main.js?v=2"></script>
+<script src="./sdkapp/js/iro.min.js"></script>
+<script src="./sdkapp/js/main.js"></script>
+<script>
+  updateWeatherAPI();
+  updateKGAPI();
+  updateSTTInfo();
+</script>
+
+</html>

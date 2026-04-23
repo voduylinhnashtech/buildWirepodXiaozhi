@@ -1,6 +1,6 @@
 # Opus codec reference implementation pkg-config file
 
-prefix=/home/kerigan/WirePod/debian/built/arm64
+prefix=/home/linh/demoxiaozhi/buildWirepodXiaozhi/debian/built/arm64
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include

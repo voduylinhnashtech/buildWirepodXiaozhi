@@ -1,0 +1,14 @@
+sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
+sudo: a password is required
+sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
+sudo: a password is required
+Building version: 1.0.0
+OGG already built for arm64
+OPUS already built for arm64
+Dependencies complete for arm64.
+Building wire-pod for arm64...
+Finishing deb for arm64
+dpkg-deb: building package 'wirepod' in 'arm64.deb'.
+final/wirepod_arm64-1.0.0.deb created successfully
+
+All debs are complete.

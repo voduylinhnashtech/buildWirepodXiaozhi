@@ -21,6 +21,7 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	wpweb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/config-ws"
 	wp "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
+	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
 	sdkWeb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
 	"github.com/ncruces/zenity"
 	"github.com/soheilhy/cmux"
@@ -111,11 +112,12 @@ func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, 
 
 	// begin wirepod stuff
 	vars.Init()
+	botsetup.CreateServerConfig()
 	var err error
 	voiceProcessor, err = wp.New(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	wpweb.SttInitFunc = sttInitFunc
-	go sdkWeb.BeginServer()
 	http.HandleFunc("/api-chipper/", ChipperHTTPApi)
+	go sdkWeb.BeginServer()
 	if err != nil {
 		return err
 	}

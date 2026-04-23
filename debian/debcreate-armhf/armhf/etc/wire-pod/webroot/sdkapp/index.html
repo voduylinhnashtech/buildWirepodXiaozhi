@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Vector SDK App · Ứng dụng SDK Vector</title>
+  <!-- Meta Apple tags for a PWA like experience. -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#1e1e1e">
+  <link rel="stylesheet" type="text/css" href="../css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://kit.fontawesome.com/7508f396ac.js" crossorigin="anonymous"></script>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT">
+</head>
+
+<body>
+  <div id="outer">
+    <div id="content">
+      <h1 class="center">Vector Configuration <small style="font-weight:normal;display:block;font-size:.55em;opacity:.9;">(Cấu hình Vector)</small></h1>
+      <hr />
+      <div class="main-nav-parent">
+        <div class="main-nav-child">
+          <a href="../index.html"><i class="fa-solid fa-reply"></i><br />Back<br /><small>(Quay lại)</small></a>
+        </div>
+      </div>
+      <hr />
+      <p>
+        Choose the bot you would like to connect to then press "Connect".
+        <small><br /><em>Chọn robot cần kết nối rồi bấm « Connect ».</em></small>
+      </p>
+      <select id="botList" name="botList"></select><br />
+      <button onclick="connectSDK()">Connect <small>(Kết nối)</small></button>
+      <hr />
+      <div id="authResult"></div>
+      <footer class="site-footer" style="margin-top: 2em; padding: 16px 8px; font-size: 0.88em; text-align: center; border-top: 1px solid rgba(255,255,255,0.12); color: #9aa0a6;">
+        <p style="margin: 0 0 6px 0;">© 2025 <strong>Võ Duy Linh</strong></p>
+        <p style="margin: 0;">Liên hệ Zalo: <strong>0375114564</strong></p>
+      </footer>
+    </div>
+  </div>
+  <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none"></iframe>
+  <script src="./js/httprequest.js"></script>
+  <script src="./js/common.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="./js/auth.js"></script>
+</body>
+
+</html>

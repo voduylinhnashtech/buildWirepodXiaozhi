@@ -159,6 +159,11 @@ fi
 echo "Using Go: $GO_BIN"
 echo "Go version: $GO_VERSION"
 
+# GVM puts GOPATH under ~/.gvm/.../global; if that mod cache has root-owned dirs (e.g. sudo go), builds fail with permission denied.
+export GOMODCACHE="${GOMODCACHE:-${REAL_HOME}/go/pkg/mod}"
+export GOCACHE="${GOCACHE:-${REAL_HOME}/.cache/go-build}"
+mkdir -p "$GOMODCACHE" "$GOCACHE"
+
 # Get GOPATH from user's Go
 export PATH="$(dirname "$GO_BIN"):$PATH"
 USER_GOPATH=$($GO_BIN env GOPATH 2>/dev/null)

@@ -8,7 +8,7 @@
 dlname='libogg.so.0'
 
 # Names of this library.
-library_names='libogg.so.0.8.5 libogg.so.0 libogg.so'
+library_names='libogg.so.0.8.6 libogg.so.0 libogg.so'
 
 # The name of the static archive.
 old_library='libogg.a'
@@ -25,7 +25,7 @@ weak_library_names=''
 # Version information for libogg.
 current=8
 age=8
-revision=5
+revision=6
 
 # Is this an already installed library?
 installed=yes
@@ -38,4 +38,4 @@ dlopen=''
 dlpreopen=''
 
 # Directory that this library needs to be installed in:
-libdir='/home/kerigan/WirePod/debian/built/arm64/lib'
+libdir='/home/linh/demoxiaozhi/buildWirepodXiaozhi/debian/built/arm64/lib'

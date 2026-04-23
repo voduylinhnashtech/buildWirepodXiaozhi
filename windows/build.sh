@@ -20,7 +20,8 @@ else
     echo "  - ../../wirepodxiaozhi"
     exit 1
 fi
-GOLDFLAGS="-X 'github.com/haryken/wirepodxiaozhi/chipper/pkg/vars.CommitSHA=${WP_COMMIT_HASH}'"
+
+GOLDFLAGS="-X 'github.com/kercre123/wire-pod/chipper/pkg/vars.CommitSHA=${WP_COMMIT_HASH}'"
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
     export CC=x86_64-w64-mingw32-gcc
@@ -35,6 +36,34 @@ export ARCHITECTURE=amd64
 
 set -e
 
+# IMPORTANT: Do not run this script with sudo.
+# If you use gvm/asdf/etc, `sudo` often switches to the root user's Go (older),
+# causing errors like: "undefined: context.WithCancelCause".
+if [ "${EUID}" -eq 0 ]; then
+    echo "❌ LỖI: Đừng chạy build bằng sudo."
+    echo "   Hãy chạy: ./build.sh <version>"
+    echo "   (Nếu cần cài dependencies, hãy chạy sudo apt ... riêng, rồi build không sudo)"
+    echo ""
+    if command -v go >/dev/null 2>&1; then
+        echo "Go hiện tại (root): $(go env GOVERSION 2>/dev/null || true)"
+    fi
+    exit 1
+fi
+
+# Verify Go version is new enough for this repo
+if ! command -v go >/dev/null 2>&1; then
+    echo "❌ LỖI: Không tìm thấy go trong PATH"
+    exit 1
+fi
+GO_VER="$(go env GOVERSION 2>/dev/null || true)"
+echo "Using Go: ${GO_VER}"
+
+# GVM sets GOPATH under ~/.gvm/pkgsets/.../global; if that mod cache was ever written as root (sudo go),
+# normal builds get "permission denied". Use home dirs unless the user already set GOMODCACHE/GOCACHE.
+export GOMODCACHE="${GOMODCACHE:-$HOME/go/pkg/mod}"
+export GOCACHE="${GOCACHE:-$HOME/.cache/go-build}"
+mkdir -p "$GOMODCACHE" "$GOCACHE"
+
 # if [[ ! -f .aptDone ]]; then
 #     sudo apt install mingw-w64 zip build-essential autoconf unzip
 #     touch .aptDone
@@ -42,6 +71,11 @@ set -e
 
 export ORIGDIR="$(pwd)"
 export PODLIBS="${ORIGDIR}/libs"
+
+# Ensure go.mod / go.sum are up to date for this build (fixes: "updates to go.mod needed; go mod tidy")
+MODROOT="$(cd "${ORIGDIR}/.." && pwd)"
+echo "Ensuring go.mod is up to date..."
+(cd "${MODROOT}" && go mod tidy)
 
 # Kiểm tra dependencies cơ bản
 check_dep() {
@@ -148,6 +182,53 @@ cp -r ${CHPATH}/webroot tmp/wire-pod/chipper/
 cp -r ${CHPATH}/epod tmp/wire-pod/chipper/
 cp ${CHPATH}/stttest.pcm tmp/wire-pod/chipper/
 echo $1 > tmp/wire-pod/chipper/version
+
+# Reference server_config.json (Escape Pod URLs) — matches botsetup.CreateServerConfig when EPConfig.
+# Packaged app writes the real file under UserConfigDir on first run; this satisfies tooling that expects certs/ in the zip.
+mkdir -p tmp/wire-pod/chipper/certs
+cat > tmp/wire-pod/chipper/certs/server_config.json <<'EOF'
+{"jdocs":"escapepod.local:443","tms":"escapepod.local:443","chipper":"escapepod.local:443","check":"escapepod.local/ok","logfiles":"s3://anki-device-logs-prod/victor","appkey":"oDoa0quieSeir6goowai7f"}
+EOF
+
+# IP-mode TLS templates in zip (runtime use_ip / CreateCertCombo still writes under %AppData%/wire-pod/certs/).
+# EP mode ignores these and uses epod/ above.
+if command -v openssl >/dev/null 2>&1; then
+    _SANCNF="$(mktemp)"
+    cat >"$_SANCNF" <<'OPENSSLCONF'
+[req]
+distinguished_name = dn
+x509_extensions = ext
+prompt = no
+
+[dn]
+CN = wire-pod-local
+
+[ext]
+subjectAltName = DNS:escapepod.local, DNS:localhost, IP:127.0.0.1
+extendedKeyUsage = serverAuth
+keyUsage = digitalSignature, keyEncipherment
+OPENSSLCONF
+    if openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+        -keyout tmp/wire-pod/chipper/certs/cert.key \
+        -out tmp/wire-pod/chipper/certs/cert.crt \
+        -config "$_SANCNF" -extensions ext 2>/dev/null; then
+        echo "OK: generated tmp/wire-pod/chipper/certs/cert.crt + cert.key (SAN escapepod.local; IP-mode / reference)."
+    else
+        echo "WARN: openssl could not write cert templates (optional). Install openssl or rely on runtime CreateCertCombo."
+    fi
+    rm -f "$_SANCNF"
+else
+    echo "WARN: openssl not in PATH — skipping cert.crt/cert.key in zip (optional)."
+fi
+
+# EP mode: chipper.exe đọc ./epod/ep.crt + ep.key (đã copy từ ${CHPATH}/epod).
+if [ ! -r "tmp/wire-pod/chipper/epod/ep.crt" ] || [ ! -r "tmp/wire-pod/chipper/epod/ep.key" ]; then
+    echo "LỖI: Trong zip staging thiếu epod TLS (ep.crt / ep.key)."
+    echo "ERROR: Missing tmp/wire-pod/chipper/epod/ep.crt or ep.key after copy from: ${CHPATH}/epod"
+    echo "        Kiểm tra repo chipper có thư mục epod đầy đủ / Ensure wirepodxiaozhi/chipper/epod exists in source."
+    exit 1
+fi
+
 cp ${CLPATH}/build/vic-cloud tmp/wire-pod/vector-cloud/build/
 cp ${CLPATH}/pod-bot-install.sh tmp/wire-pod/vector-cloud/
 cp -r ../icons tmp/wire-pod/chipper/icons

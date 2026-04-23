@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
-	stt "github.com/kercre123/wire-pod/chipper/pkg/wirepod/stt/vosk"
+	stt "github.com/kercre123/wire-pod/chipper/pkg/wirepod/stt/xiaozhi"
 	"gopkg.in/ini.v1"
 )
 
@@ -99,6 +99,8 @@ func main() {
 	if *justIP {
 		ipAddr := vars.GetOutboundIP().String()
 		fmt.Println("\033[1;32mWirePod configuration page: \033[1;36mhttp://" + ipAddr + ":" + webPort + "\033[0m")
+		// Plain URL for postinst/scripts (ANSI in the line above can confuse grep in some locales/terminals).
+		fmt.Printf("http://%s:%s\n", ipAddr, webPort)
 		os.Exit(0)
 	}
 	os.Setenv("WEBSERVER_PORT", webPort)
@@ -118,7 +120,7 @@ func main() {
 	if *verb {
 		os.Setenv("DEBUG_LOGGING", "true")
 	}
-	os.Setenv("STT_SERVICE", "vosk")
+	os.Setenv("STT_SERVICE", "xiaozhi")
 	os.Chdir("/etc/wire-pod")
 	DoPerfMode(perfMode)
 	StartFromProgramInit(stt.Init, stt.STT, stt.Name)

@@ -10,7 +10,7 @@ elif [ -d "../../wirepodxiaozhi" ]; then
 else
     WP_COMMIT_HASH="github"
 fi
-GOLDFLAGS="-X 'github.com/haryken/wirepodxiaozhi/chipper/pkg/vars.CommitSHA=${WP_COMMIT_HASH}'"
+GOLDFLAGS="-X 'github.com/kercre123/wire-pod/chipper/pkg/vars.CommitSHA=${WP_COMMIT_HASH}'"
 
 export PODVER="$1"
 

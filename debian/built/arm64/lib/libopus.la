@@ -8,7 +8,7 @@
 dlname='libopus.so.0'
 
 # Names of this library.
-library_names='libopus.so.0.10.0 libopus.so.0 libopus.so'
+library_names='libopus.so.0.11.1 libopus.so.0 libopus.so'
 
 # The name of the static archive.
 old_library='libopus.a'
@@ -23,9 +23,9 @@ dependency_libs=' -lm'
 weak_library_names=''
 
 # Version information for libopus.
-current=10
-age=10
-revision=0
+current=11
+age=11
+revision=1
 
 # Is this an already installed library?
 installed=yes
@@ -38,4 +38,4 @@ dlopen=''
 dlpreopen=''
 
 # Directory that this library needs to be installed in:
-libdir='/home/kerigan/WirePod/debian/built/arm64/lib'
+libdir='/home/linh/demoxiaozhi/buildWirepodXiaozhi/debian/built/arm64/lib'

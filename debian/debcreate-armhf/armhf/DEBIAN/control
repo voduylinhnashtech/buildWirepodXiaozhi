@@ -1,0 +1,7 @@
+Package: wirepod
+Version: 1.1.3
+Maintainer: Kerigan Creighton <kerigancreighton@gmail.com>
+Description: A replacement voice server for the Anki Vector robot.
+Homepage: https://github.com/haryken/wirepodxiaozhi
+Architecture: armhf
+Depends: libopus0, libogg0, avahi-daemon, libatomic1, libsodium23

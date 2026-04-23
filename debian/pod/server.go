@@ -21,6 +21,7 @@ import (
 	wpweb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/config-ws"
 	wp "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
 	sdkWeb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
+	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
 	"github.com/soheilhy/cmux"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
@@ -85,11 +86,12 @@ func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, 
 
 	// begin wirepod stuff
 	vars.Init()
+	botsetup.CreateServerConfig()
 	var err error
 	voiceProcessor, err = wp.New(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	wpweb.SttInitFunc = sttInitFunc
-	go sdkWeb.BeginServer()
 	http.HandleFunc("/api-chipper/", ChipperHTTPApi)
+	go sdkWeb.BeginServer()
 	if err != nil {
 		return err
 	}
@@ -99,7 +101,7 @@ func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, 
 func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) {
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		os.Setenv("DEBUG_LOGGING", "true")
-		os.Setenv("STT_SERVICE", "vosk")
+		os.Setenv("STT_SERVICE", "xiaozhi")
 	}
 	err := BeginWirepodSpecific(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	if err != nil {
